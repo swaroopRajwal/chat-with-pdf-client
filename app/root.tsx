@@ -9,6 +9,7 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import { TooltipProvider } from "@ui/tooltip";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -32,8 +33,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body>
-        {children}
+      <body className="dark">
+        <TooltipProvider>{children}</TooltipProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
