@@ -1,10 +1,10 @@
-import HomePageLayout from "@layouts/home";
+import HomePageLayout from "@layouts/homePageLayout";
 import type { Route } from "./+types/home";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Home page" },
-    { name: "description", content: "Welcome to React Router!" },
+    { title: "Files" },
+    { name: "description", content: "View all available PDFs to chat with" },
   ];
 }
 

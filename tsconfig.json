@@ -18,6 +18,7 @@
       "@ui/*": ["./app/components/ui/*"],
       "@components/*": ["./app/components/*"],
       "@lib/*": ["./app/lib/*"],
+      "@api/*": ["./app/api/*"],
       "@app/*": ["./app/*"]
     },
     "esModuleInterop": true,
