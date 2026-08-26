@@ -14,6 +14,7 @@ import {
 import dayjs from "dayjs";
 import { MessageSquareMoreIcon } from "lucide-react";
 import { Button } from "@ui/button";
+import { Link } from "react-router";
 
 const FilesListing: React.FC<{
   data?: IFile[];
@@ -38,14 +39,16 @@ const FilesListing: React.FC<{
       </TableHeader>
       <TableBody>
         {data.map((i, index) => (
-          <TableRow>
+          <TableRow key={i.id}>
             <TableCell>{index + 1}</TableCell>
             <TableCell>{i.file_name}</TableCell>
             <TableCell>{dayjs(i.created_at).format("DD MMM, YYYY")}</TableCell>
             <TableCell>
-              <Button size="icon-lg">
-                <MessageSquareMoreIcon />
-              </Button>
+              <Link to={`/chat/${i.id}`}>
+                <Button size="icon-lg">
+                  <MessageSquareMoreIcon />
+                </Button>
+              </Link>
             </TableCell>
           </TableRow>
         ))}

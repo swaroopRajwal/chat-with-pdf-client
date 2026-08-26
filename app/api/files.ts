@@ -3,5 +3,13 @@ import apiClient from "./apiClient";
 import type { IFile } from "@lib/types/files.type";
 
 export const getAllFiles = async () => await apiClient<IResponseMultiple<IFile>>("/files", {
-    method: 'GET'
+  method: 'GET'
 });
+
+export const getSingleFile = async ({
+  id
+}: {
+  id: string
+}) => await apiClient<IResponse<IFile>>(`/files/${id}`, {
+  method: "GET"
+})
