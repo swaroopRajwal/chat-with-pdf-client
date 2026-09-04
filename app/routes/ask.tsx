@@ -1,4 +1,4 @@
-import type { Route } from "./+types/chat";
+import type { Route } from "./+types/ask";
 import { getSingleFile } from "@api/files";
 import AskPageLayout from "@layouts/askPageLayout";
 
