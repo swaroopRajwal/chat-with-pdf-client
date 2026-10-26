@@ -2,7 +2,7 @@ import type { Route } from "./+types/chat";
 import ChatPageLayout from "@layouts/chatPageLayout";
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Chat" }, { name: "description", content: "Chat with PDF" }];
+  return [{ title: "Chat" }, { name: "description", content: "Talk with books" }];
 }
 
 // TODO: setup 404

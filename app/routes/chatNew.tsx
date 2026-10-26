@@ -3,7 +3,7 @@ import type { Route } from "./+types/chatNew";
 import NewChatPageLayout from "@layouts/newChatPageLayout";
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "New chat" }, { name: "description", content: "Chat with PDF" }];
+  return [{ title: "New chat" }, { name: "description", content: "Talk with books" }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {

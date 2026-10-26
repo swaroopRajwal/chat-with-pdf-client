@@ -1,3 +1,4 @@
+import { formatTitle } from "@lib/utils";
 import type { IChatWithMessage, IMessage } from "@lib/types/chat.type";
 import ChatComposer from "@components/app/chatComposer";
 import { Button } from "@ui/button";
@@ -43,9 +44,9 @@ const ChatArea: React.FC<IChatAreaProps> = ({
         <div className="flex flex-1 items-center justify-center p-6">
           <Empty>
             <EmptyHeader>
-              <EmptyTitle>{file_name}</EmptyTitle>
+              <EmptyTitle>{formatTitle(file_name)}</EmptyTitle>
               <EmptyDescription>
-                Ask anything about this PDF. Answers come only from its content.
+                Ask anything about this book. Answers come only from its content.
               </EmptyDescription>
             </EmptyHeader>
           </Empty>

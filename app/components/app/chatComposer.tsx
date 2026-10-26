@@ -45,7 +45,7 @@ const ChatComposer: React.FC<IChatComposerProps> = ({ onSend, isLoading }) => {
     <form className="px-6 pb-6" onSubmit={handleSubmit}>
       <InputGroup>
         <InputGroupTextarea
-          placeholder="Ask anything about this PDF..."
+          placeholder="Ask anything about this book..."
           className="min-h-0 max-h-48 p-3.5"
           rows={1}
           ref={inputRef}

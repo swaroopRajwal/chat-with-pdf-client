@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getAllFiles } from "@api/files";
+import { formatTitle } from "@lib/utils";
 import type {
   FilesSortBy,
   IFile,
@@ -103,14 +104,14 @@ const FileRows: React.FC<{ files: IFile[]; offset: number }> = ({
       <TableCell>{offset + index + 1}</TableCell>
       <TableCell className="font-medium">
         <Link to={`/chat/new?file=${file.id}`} className="hover:underline">
-          {file.file_name}
+          {formatTitle(file.file_name)}
         </Link>
       </TableCell>
       <TableCell>{file.pages_count}</TableCell>
       <TableCell>{dayjs(file.created_at).format("DD MMM, YYYY")}</TableCell>
       <TableCell className="text-right">
         <Link to={`/chat/new?file=${file.id}`}>
-          <Button size="icon-lg" aria-label={`Chat with ${file.file_name}`}>
+          <Button size="icon-lg" aria-label={`Chat with ${formatTitle(file.file_name)}`}>
             <MessageSquareMoreIcon />
           </Button>
         </Link>
@@ -171,10 +172,10 @@ const HomePageLayout = () => {
   return (
     <main className="min-h-screen max-w-7xl mx-auto w-full p-6 flex flex-col gap-4">
       <header className="flex items-baseline justify-between">
-        <h1 className="text-2xl font-semibold">All Files</h1>
+        <h1 className="text-2xl font-semibold">All Books</h1>
         {data && (
           <span className="text-sm text-muted-foreground">
-            {count} {count === 1 ? "file" : "files"}
+            {count} {count === 1 ? "book" : "books"}
           </span>
         )}
       </header>
@@ -182,9 +183,9 @@ const HomePageLayout = () => {
       {!isLoading && count === 0 ? (
         <Empty className="border">
           <EmptyHeader>
-            <EmptyTitle>No files uploaded</EmptyTitle>
+            <EmptyTitle>No books uploaded</EmptyTitle>
             <EmptyDescription>
-              Uploaded PDFs will show up here.
+              Uploaded books will show up here.
             </EmptyDescription>
           </EmptyHeader>
         </Empty>
@@ -195,7 +196,7 @@ const HomePageLayout = () => {
               <TableRow>
                 <TableHead className="w-16">#</TableHead>
                 <SortableHead
-                  label="PDF name"
+                  label="Book"
                   field="file_name"
                   query={query}
                   onSort={onSort}

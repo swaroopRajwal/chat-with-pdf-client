@@ -1,3 +1,4 @@
+import { formatTitle } from "@lib/utils";
 import { getAllChats } from "@lib/chatStorage";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@ui/button";
@@ -54,7 +55,7 @@ const ChatLayout = () => {
           <Link to="/">
             <Button variant="ghost" size="sm" className="w-full justify-start">
               <ArrowLeftIcon data-icon="inline-start" />
-              All files
+              All Books
             </Button>
           </Link>
           {fileId ? (
@@ -90,9 +91,11 @@ const ChatLayout = () => {
                       render={
                         <Link to={`/chat/${chat.id}`}>
                           <span className="flex min-w-0 flex-col items-start">
-                            <span className="w-full truncate">{chat.title}</span>
+                            <span className="w-full truncate">
+                              {chat.title}
+                            </span>
                             <span className="w-full truncate text-xs text-muted-foreground">
-                              {chat.file_name}
+                              {formatTitle(chat.file_name)}
                             </span>
                           </span>
                         </Link>
