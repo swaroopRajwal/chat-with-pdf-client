@@ -4,6 +4,7 @@ export interface IChat {
   id: string;
   file_id: string;
   client_id: string;
+  title: string;
   created_at: Date;
   file: IFile;
 }

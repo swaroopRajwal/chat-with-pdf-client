@@ -21,13 +21,13 @@ const ChatMessage: React.FC<IChatMessageProps> = ({ message }) => {
       </Message>
     );
 
-  // if (message?.isStreaming)
-  //   return (
-  //     <div>
-  //       <p>Thinking ... </p>
-  //     </div>
-  //   );
-  //
+  if (message.isStreaming && !message.content)
+    return (
+      <p className="px-1.5 text-sm text-muted-foreground animate-pulse">
+        Thinking…
+      </p>
+    );
+
   return (
     <div className="typeset typeset-docs px-1.5">
       <ReactMarkdown remarkPlugins={[remarkGfm]}>

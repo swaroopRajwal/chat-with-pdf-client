@@ -1,15 +1,8 @@
-import { askChatQuery } from "@api/chat";
-import type { IChatWithMessage, IMessage } from "@lib/types/chat.type";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bubble, BubbleContent } from "@ui/bubble";
+import type { IFile } from "@lib/types/files.type";
+import type { IMessage } from "@lib/types/chat.type";
+import ChatComposer from "@components/app/chatComposer";
+import { Button } from "@ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@ui/empty";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupTextarea,
-} from "@ui/input-group";
-import { Message, MessageContent } from "@ui/message";
 import {
   MessageScroller,
   MessageScrollerContent,
@@ -17,33 +10,30 @@ import {
   MessageScrollerProvider,
   MessageScrollerViewport,
 } from "@ui/message-scroller";
-import { ArrowUpIcon, SendIcon } from "lucide-react";
-import type React from "react";
-import { useRef, useState } from "react";
+import { RotateCcwIcon } from "lucide-react";
 import ChatMessage from "./chatMessage";
 import useChat from "@app/hooks/useChat";
 
 interface IChatAreaProps {
-  chat: IChatWithMessage;
+  // Undefined on the new chat view
+  chat_id?: string;
+  file: IFile;
+  messages: IMessage[];
+  onChatCreated?: (chat_id: string, messages: IMessage[]) => void;
 }
 
-const ChatArea: React.FC<IChatAreaProps> = ({ chat }) => {
-  const { messages, isLoading, sendMessage } = useChat({
-    messages: chat.messages,
-    chat: chat,
+const ChatArea: React.FC<IChatAreaProps> = ({
+  chat_id,
+  file,
+  messages: initMessages,
+  onChatCreated,
+}) => {
+  const { messages, isLoading, needsRetry, sendMessage, retry } = useChat({
+    chat_id,
+    file_id: file.id,
+    messages: initMessages,
+    onChatCreated,
   });
-
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-
-  const handleSubmit = (e: React.ChangeEvent) => {
-    e.preventDefault();
-    if (!inputRef?.current) return;
-    if (!inputRef.current?.value) return;
-
-    const query = inputRef.current.value.trim();
-
-    sendMessage(query);
-  };
 
   return (
     <div className="w-full min-h-0 flex flex-1 flex-col mx-auto max-w-2xl">
@@ -51,8 +41,10 @@ const ChatArea: React.FC<IChatAreaProps> = ({ chat }) => {
         <div className="flex flex-1 items-center justify-center p-6">
           <Empty>
             <EmptyHeader>
-              <EmptyTitle>Hello!!!</EmptyTitle>
-              <EmptyDescription>What can I help with today?</EmptyDescription>
+              <EmptyTitle>{file.file_name}</EmptyTitle>
+              <EmptyDescription>
+                Ask anything about this PDF. Answers come only from its content.
+              </EmptyDescription>
             </EmptyHeader>
           </Empty>
         </div>
@@ -70,33 +62,21 @@ const ChatArea: React.FC<IChatAreaProps> = ({ chat }) => {
                     <ChatMessage message={msg} />
                   </MessageScrollerItem>
                 ))}
+                {needsRetry && (
+                  <div className="flex items-center gap-3 px-1.5 text-sm text-muted-foreground">
+                    <span>Couldn't get a reply.</span>
+                    <Button variant="outline" size="sm" onClick={retry}>
+                      <RotateCcwIcon data-icon="inline-start" />
+                      Retry
+                    </Button>
+                  </div>
+                )}
               </MessageScrollerContent>
             </MessageScrollerViewport>
           </MessageScroller>
         </MessageScrollerProvider>
       )}
-      <form onSubmit={handleSubmit}>
-        <InputGroup>
-          <InputGroupTextarea
-            placeholder="Ask..."
-            className="p-3.5"
-            ref={inputRef}
-            disabled={isLoading}
-          />
-          <InputGroupAddon align="block-end">
-            <InputGroupButton
-              className="ml-auto rounded-full"
-              disabled={isLoading}
-              aria-label="Send"
-              type="submit"
-              variant="default"
-              size="icon-sm"
-            >
-              <ArrowUpIcon />
-            </InputGroupButton>
-          </InputGroupAddon>
-        </InputGroup>
-      </form>
+      <ChatComposer onSend={sendMessage} isLoading={isLoading} />
     </div>
   );
 };

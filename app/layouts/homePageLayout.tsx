@@ -102,14 +102,14 @@ const FileRows: React.FC<{ files: IFile[]; offset: number }> = ({
     <TableRow key={file.id}>
       <TableCell>{offset + index + 1}</TableCell>
       <TableCell className="font-medium">
-        <Link to={`/file/${file.id}`} className="hover:underline">
+        <Link to={`/chat/new?file=${file.id}`} className="hover:underline">
           {file.file_name}
         </Link>
       </TableCell>
       <TableCell>{file.pages_count}</TableCell>
       <TableCell>{dayjs(file.created_at).format("DD MMM, YYYY")}</TableCell>
       <TableCell className="text-right">
-        <Link to={`/file/${file.id}`}>
+        <Link to={`/chat/new?file=${file.id}`}>
           <Button size="icon-lg" aria-label={`Chat with ${file.file_name}`}>
             <MessageSquareMoreIcon />
           </Button>
