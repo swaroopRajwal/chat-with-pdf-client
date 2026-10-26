@@ -1,29 +1,19 @@
-import { getSingleFile } from "@api/files";
-import type { Route } from "./+types/chat"
+import type { Route } from "./+types/chat";
 import ChatPageLayout from "@layouts/chatPageLayout";
 
-export function meta({ }: Route.MetaArgs) {
-  return [
-    { title: "Chat" },
-    { name: "description", content: "Chat with PDF" }
-  ]
+export function meta({}: Route.MetaArgs) {
+  return [{ title: "Chat" }, { name: "description", content: "Chat with PDF" }];
 }
 
+// TODO: setup 404
 export async function loader({ params }: Route.LoaderArgs) {
-  let file_id = params.file_id;
-
-  const file = await getSingleFile({
-    id: file_id
-  })
-
   return {
-    file
-  }
+    chat_id: params.chat_id,
+  };
 }
 
 const Chat: React.FC<Route.ComponentProps> = ({ loaderData }) => {
-  return <ChatPageLayout file={loaderData.file.data} />
-}
+  return <ChatPageLayout chat_id={loaderData.chat_id} />;
+};
 
-export default Chat
-
+export default Chat;

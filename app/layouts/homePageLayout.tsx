@@ -44,7 +44,7 @@ const FilesListing: React.FC<{
             <TableCell>{i.file_name}</TableCell>
             <TableCell>{dayjs(i.created_at).format("DD MMM, YYYY")}</TableCell>
             <TableCell>
-              <Link to={`/chat/${i.id}`}>
+              <Link to={`/file/${i.id}`}>
                 <Button size="icon-lg">
                   <MessageSquareMoreIcon />
                 </Button>
