@@ -1,5 +1,4 @@
-import type { IFile } from "@lib/types/files.type";
-import type { IMessage } from "@lib/types/chat.type";
+import type { IChatWithMessage, IMessage } from "@lib/types/chat.type";
 import ChatComposer from "@components/app/chatComposer";
 import { Button } from "@ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@ui/empty";
@@ -17,20 +16,23 @@ import useChat from "@app/hooks/useChat";
 interface IChatAreaProps {
   // Undefined on the new chat view
   chat_id?: string;
-  file: IFile;
+  file_id: string;
+  file_name: string;
   messages: IMessage[];
-  onChatCreated?: (chat_id: string, messages: IMessage[]) => void;
+  onChatCreated?: (chat: IChatWithMessage) => void;
 }
 
 const ChatArea: React.FC<IChatAreaProps> = ({
   chat_id,
-  file,
+  file_id,
+  file_name,
   messages: initMessages,
   onChatCreated,
 }) => {
   const { messages, isLoading, needsRetry, sendMessage, retry } = useChat({
     chat_id,
-    file_id: file.id,
+    file_id,
+    file_name,
     messages: initMessages,
     onChatCreated,
   });
@@ -41,7 +43,7 @@ const ChatArea: React.FC<IChatAreaProps> = ({
         <div className="flex flex-1 items-center justify-center p-6">
           <Empty>
             <EmptyHeader>
-              <EmptyTitle>{file.file_name}</EmptyTitle>
+              <EmptyTitle>{file_name}</EmptyTitle>
               <EmptyDescription>
                 Ask anything about this PDF. Answers come only from its content.
               </EmptyDescription>

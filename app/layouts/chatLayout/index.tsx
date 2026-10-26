@@ -1,4 +1,4 @@
-import { getAllChats } from "@api/chat";
+import { getAllChats } from "@lib/chatStorage";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@ui/button";
 import { Skeleton } from "@ui/skeleton";
@@ -35,7 +35,7 @@ const ChatLayout = () => {
     queryFn: getAllChats,
   });
 
-  const chats = data?.data ?? [];
+  const chats = data ?? [];
 
   const isNewChat = pathname === NEW_CHAT_PATH;
   const activeChatId = isNewChat
@@ -92,7 +92,7 @@ const ChatLayout = () => {
                           <span className="flex min-w-0 flex-col items-start">
                             <span className="w-full truncate">{chat.title}</span>
                             <span className="w-full truncate text-xs text-muted-foreground">
-                              {chat.file.file_name}
+                              {chat.file_name}
                             </span>
                           </span>
                         </Link>

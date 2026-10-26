@@ -1,13 +1,18 @@
-import type { IResponse } from "@lib/types/api.type";
-import apiClient from "./apiClient";
-import type { IChat, IChatWithMessage } from "@lib/types/chat.type";
+import type { IMessage } from "@lib/types/chat.type";
 
-export const getAllChats = async () =>
-  await apiClient<IResponse<IChat[]>>("/chats", {
-    method: "GET",
-  });
-
-export const getSingleChat = async ({ chat_id }: { chat_id: string }) =>
-  await apiClient<IResponse<IChatWithMessage>>(`/chats/${chat_id}`, {
-    method: "GET",
+// Chats live in the browser (see lib/chatStorage.ts), the server only streams the reply
+export const streamReply = async ({
+  file_id,
+  messages,
+  signal,
+}: {
+  file_id: string;
+  messages: Pick<IMessage, "role" | "content">[];
+  signal: AbortSignal;
+}) =>
+  await fetch(`${import.meta.env.VITE_SERVER_BASE_URL}/reply`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ file_id, messages }),
+    signal,
   });

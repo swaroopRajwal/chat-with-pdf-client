@@ -1,14 +1,19 @@
+import { streamReply } from "@api/chat";
+import { saveChat } from "@lib/chatStorage";
 import { readSse } from "@lib/sse";
-import type { IMessage } from "@lib/types/chat.type";
-import { useRef, useState } from "react";
+import type { IChatWithMessage, IMessage } from "@lib/types/chat.type";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 interface IUseChatParams {
-  // Undefined on the new chat view, where the first send creates the chat
+  // Undefined on the new chat view, where the chat is created once the first reply is done
   chat_id?: string;
   file_id: string;
+  file_name: string;
   messages: IMessage[];
-  // Called once the first reply of a newly created chat has finished (or failed)
-  onChatCreated?: (chat_id: string, messages: IMessage[]) => void;
+  // Called once the first reply of a newly created chat has been stored
+  onChatCreated?: (chat: IChatWithMessage) => void;
 }
 
 export interface IUseChatMsg extends IMessage {
@@ -18,63 +23,83 @@ export interface IUseChatMsg extends IMessage {
 const useChat = ({
   chat_id,
   file_id,
+  file_name,
   messages: initMessages,
   onChatCreated,
 }: IUseChatParams) => {
+  const queryClient = useQueryClient();
+
   const [messages, setMessages] = useState<IUseChatMsg[]>(initMessages);
   const [isLoading, setIsLoading] = useState(false);
 
   const messagesRef = useRef<IUseChatMsg[]>(initMessages);
-  const chatIdRef = useRef(chat_id);
+  const chatIdRef = useRef(chat_id ?? crypto.randomUUID());
+  const isStoredRef = useRef(!!chat_id);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Leaving the page mid-reply stops the stream, and what arrived so far is kept
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   const update = (fn: (prev: IUseChatMsg[]) => IUseChatMsg[]) => {
     messagesRef.current = fn(messagesRef.current);
     setMessages(messagesRef.current);
   };
 
-  // Streams the reply to the last (user) message. `content` is only sent when
-  // the user message isn't saved yet: the chat doesn't exist, or it's a new one.
-  const streamReply = async (content?: string) => {
-    const assistantId = crypto.randomUUID();
-    const baseUrl = import.meta.env.VITE_SERVER_BASE_URL;
-    const isNewChat = !chatIdRef.current;
+  // Writes the conversation (without the in-flight reply) to local storage
+  const persist = (list: IUseChatMsg[]) => {
+    const chat = saveChat({
+      chat_id: chatIdRef.current,
+      file_id,
+      file_name,
+      messages: list.map(({ id, role, content }) => ({ id, role, content })),
+    });
 
+    if (!chat) {
+      toast.error("Couldn't save this chat, your browser storage is full.");
+      return null;
+    }
+
+    const wasStored = isStoredRef.current;
+    isStoredRef.current = true;
+
+    queryClient.setQueryData(["chats", chat.id], chat);
+    queryClient.invalidateQueries({ queryKey: ["chats"], exact: true });
+
+    if (!wasStored) onChatCreated?.(chat);
+
+    return chat;
+  };
+
+  // Streams the reply to the last (user) message
+  const streamLastReply = async () => {
+    const assistantId = crypto.randomUUID();
+    const history = messagesRef.current;
+    const controller = new AbortController();
+
+    abortRef.current = controller;
     setIsLoading(true);
     update((prev) => [
       ...prev,
-      {
-        id: assistantId,
-        role: "AI",
-        chat_id: chatIdRef.current ?? "",
-        content: "",
-        order: prev.length + 1,
-        isStreaming: true,
-      },
+      { id: assistantId, role: "AI", content: "", isStreaming: true },
     ]);
 
     let failed = false;
 
     try {
-      const response = await fetch(
-        isNewChat
-          ? `${baseUrl}/chats/init`
-          : `${baseUrl}/chats/${chatIdRef.current}/ask`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(
-            isNewChat ? { query: content, file_id } : { content },
-          ),
-        },
-      );
+      const response = await streamReply({
+        file_id,
+        messages: history,
+        signal: controller.signal,
+      });
 
-      if (!response.ok || !response.body)
+      if (!response.ok || !response.body) {
+        const body = await response.json().catch(() => null);
+        if (typeof body?.message === "string") toast.error(body.message);
         throw new Error(`Server error: ${response.status}`);
+      }
 
       await readSse(response.body, (event, data) => {
-        if (event === "chat") {
-          chatIdRef.current = data;
-        } else if (event === "error") {
+        if (event === "error") {
           failed = true;
         } else if (data !== "[DONE]") {
           update((prev) =>
@@ -85,13 +110,19 @@ const useChat = ({
         }
       });
     } catch (err) {
-      console.error(err);
-      failed = true;
+      // An abort is not a failure: the partial reply below is stored
+      if (!controller.signal.aborted) {
+        console.error(err);
+        failed = true;
+      }
     }
 
-    // A failed reply is dropped: the server saves nothing, and Retry asks again
+    const reply = messagesRef.current.find((m) => m.id === assistantId);
+    // A failed reply is dropped, and Retry asks again
+    const dropReply = failed || !reply?.content;
+
     update((prev) =>
-      failed
+      dropReply
         ? prev.filter((m) => m.id !== assistantId)
         : prev.map((m) =>
             m.id === assistantId ? { ...m, isStreaming: false } : m,
@@ -99,19 +130,8 @@ const useChat = ({
     );
     setIsLoading(false);
 
-    if (isNewChat && chatIdRef.current) {
-      const createdId = chatIdRef.current;
-      onChatCreated?.(
-        createdId,
-        messagesRef.current.map((m) => ({
-          id: m.id,
-          chat_id: createdId,
-          role: m.role,
-          content: m.content,
-          order: m.order,
-        })),
-      );
-    }
+    // Until its first reply is done a new chat isn't stored at all
+    if (!dropReply) persist(messagesRef.current);
   };
 
   const sendMessage = async (msg: string) => {
@@ -120,26 +140,20 @@ const useChat = ({
 
     update((prev) => [
       ...prev,
-      {
-        id: crypto.randomUUID(),
-        role: "USER",
-        chat_id: chatIdRef.current ?? "",
-        content,
-        order: prev.length + 1,
-      },
+      { id: crypto.randomUUID(), role: "USER", content },
     ]);
 
-    await streamReply(content);
+    if (isStoredRef.current) persist(messagesRef.current);
+
+    await streamLastReply();
   };
 
   const retry = async () => {
     if (isLoading) return;
 
-    const last = messagesRef.current.at(-1);
-    if (last?.role !== "USER") return;
+    if (messagesRef.current.at(-1)?.role !== "USER") return;
 
-    // The user message is already saved unless the chat was never created
-    await streamReply(chatIdRef.current ? undefined : last.content);
+    await streamLastReply();
   };
 
   // The last user message has no reply: the stream failed here or earlier

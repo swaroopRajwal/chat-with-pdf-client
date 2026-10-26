@@ -1,12 +1,10 @@
-import type { IFile } from "./files.type";
-
 export interface IChat {
   id: string;
   file_id: string;
-  client_id: string;
+  file_name: string;
   title: string;
-  created_at: Date;
-  file: IFile;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface IChatWithMessage extends IChat {
@@ -15,8 +13,6 @@ export interface IChatWithMessage extends IChat {
 
 export interface IMessage {
   id: string;
-  chat_id: string;
-  content: string;
   role: "USER" | "AI";
-  order: number;
+  content: string;
 }
